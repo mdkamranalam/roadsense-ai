@@ -21,6 +21,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Allowed video extensions
+ALLOWED_EXTENSIONS = {'.mp4', '.avi', '.mov', '.mkv'}
+MAX_FILE_SIZE = 50 * 1024 * 1024 # 50 MB
+
 @app.get("/")
 async def root():
     return {"message": "Welcome to RoadSense AI Backend API", "status": "online"}
@@ -31,6 +35,20 @@ async def health_check():
 
 @app.post("/upload")
 async def upload_video(file: UploadFile = File(...)):
+    # 1. Validate file extension
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(status_code=400, detail=f"Unsupported file extension. Allowed: {', '.join(ALLOWED_EXTENSIONS)}")
+
+    # 2. Validate file size (approximation)
+    # Read the size from the upload file
+    content = await file.read()
+    if len(content) > MAX_FILE_SIZE:
+        raise HTTPException(status_code=413, detail="File too large. Maximum allowed size is 50MB.")
+
+    # Reset file pointer after reading size
+    await file.seek(0)
+
     try:
         file_path = await video_processor.save_upload(file)
         return {"message": "Video uploaded successfully", "file_path": file_path}
@@ -39,6 +57,9 @@ async def upload_video(file: UploadFile = File(...)):
 
 @app.post("/analyze")
 async def analyze_video(file_path: str):
+    if not file_path:
+        raise HTTPException(status_code=400, detail="file_path is required")
+
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Video file not found")
 
@@ -47,6 +68,7 @@ async def analyze_video(file_path: str):
         total_hazards = 0
 
         # 1. Process frames and perform basic object detection
+        # We use the default sample_rate from video_processor
         for frame_idx, frame in video_processor.extract_frames(file_path):
             detection_result = detector.detect(frame)
 
@@ -60,6 +82,10 @@ async def analyze_video(file_path: str):
                 "detections": detection_result["detections"],
                 "hazards": frame_hazards
             })
+
+        # Edge Case: Empty or unreadable video
+        if not all_frames_results:
+            raise HTTPException(status_code=422, detail="Could not extract any frames from the video. The file may be empty or corrupted.")
 
         # 2. Aggregate data for intelligence modules
         last_frame_counts = all_frames_results[-1]["counts"] if all_frames_results else {}
@@ -104,6 +130,8 @@ async def analyze_video(file_path: str):
             "alerts": alerts
         }
     except Exception as e:
+        if isinstance(e, HTTPException):
+            raise e
         import traceback
         print(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
