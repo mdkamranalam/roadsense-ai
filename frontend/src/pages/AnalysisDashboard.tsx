@@ -1,21 +1,22 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   BarChart, Bar, AreaChart, Area
 } from 'recharts';
+import useVoiceAlerts from '../hooks/useVoiceAlerts';
 
 interface DashboardProps {
   analysisData: any;
 }
 
 const AnalysisDashboard: React.FC<DashboardProps> = ({ analysisData }) => {
-  const { summary, detailed_analysis } = analysisData;
+  const { summary, detailed_analysis, alerts } = analysisData;
+
+  // Trigger Voice Alerts when dashboard loads
+  useVoiceAlerts(alerts);
 
   // Prepare data for Risk Trend Chart (Risk vs Frame)
-  // Since the API currently returns risk score as a summary, we'll derive it per frame
-  // for the visualization purpose (simplification for MVP)
-  const riskTrendData = detailed_analysis.map((frame: any, index: number) => {
-    // Basic logic to simulate risk per frame based on object counts
+  const riskTrendData = detailed_analysis.map((frame: any) => {
     const countSum = Object.values(frame.counts).reduce((a: number, b: number) => a + b, 0);
     const risk = Math.min(100, (countSum * 2) + (frame.hazards.length * 10));
     return {
@@ -24,14 +25,7 @@ const AnalysisDashboard: React.FC<DashboardProps> = ({ analysisData }) => {
     };
   });
 
-  // Prepare data for Object Count Chart
-  const objectCounts = {
-    cars: summary.detailed_analysis ? 0 : 0, // Placeholder
-    bikes: 0,
-    pedestrians: 0,
-  };
-
-  // Actual aggregate counts from the analysis
+  // Aggregate counts for Object Distribution Chart
   const aggCounts = {
     cars: 0,
     bikes: 0,
@@ -51,7 +45,16 @@ const AnalysisDashboard: React.FC<DashboardProps> = ({ analysisData }) => {
 
   return (
     <div className="space-y-8 p-6 bg-gray-900 text-white rounded-2xl border border-gray-800">
-      <h2 className="text-3xl font-bold text-blue-400">Safety Analytics Dashboard</h2>
+      <div className="flex justify-between items-center">
+        <h2 className="text-3xl font-bold text-blue-400">Safety Analytics Dashboard</h2>
+        <div className="flex items-center space-x-2 px-3 py-1 bg-blue-500/20 border border-blue-500/50 rounded-full text-blue-300 text-xs font-bold uppercase tracking-wider">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+          </span>
+          <span>Voice Alerts Active</span>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Risk Trend Chart */}
@@ -99,7 +102,7 @@ const AnalysisDashboard: React.FC<DashboardProps> = ({ analysisData }) => {
           <p className="text-gray-400 text-xs uppercase font-bold">Avg Risk</p>
           <p className="text-2xl font-bold">{summary.risk_score}%</p>
         </div>
-        <div className="p-4 bg-gray-800 rounded-lg border border-gray-700 text-center">
+        <div la="p-4 bg-gray-800 rounded-lg border border-gray-700 text-center">
           <p className="text-gray-400 text-xs uppercase font-bold">Hazards</p>
           <p className="text-2xl font-bold text-red-400">{summary.total_hazards_detected}</p>
         </div>
