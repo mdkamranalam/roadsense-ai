@@ -1,0 +1,32 @@
+# Python cache and compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+.env/
+.env.*
+
+# Tool caches
+.mypy_cache/
+.pytest_cache/
+
+# Logs
+logs/
+*.log
+
+# Local data, model, and output artifacts
+datasets/
+models/
+outputs/
+uploads/
+
+# IDE / editor
+.vscode/
+.idea/
