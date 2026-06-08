@@ -10,9 +10,9 @@ RoadSense AI is an intelligent software layer designed for Adaptive Advanced Dri
 - **YOLOv8** (Weights will be downloaded automatically on first run)
 
 ### 🛠 Backend Setup
-1. Navigate to the backend directory:
+1. Navigate to the project root directory.
    ```bash
-   cd backend
+   # Stay in the root directory
    ```
 2. Create and activate a virtual environment:
    ```bash
@@ -21,11 +21,11 @@ RoadSense AI is an intelligent software layer designed for Adaptive Advanced Dri
    ```
 3. Install dependencies:
    ```bash
-   pip install -r requirements.txt
+   pip install -r backend/requirements.txt
    ```
 4. Start the FastAPI server:
    ```bash
-   python app.py
+   python -m backend.app
    ```
    The server will be available at `http://localhost:8000`.
 
