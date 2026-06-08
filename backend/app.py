@@ -7,6 +7,7 @@ from backend.services.traffic_analyzer import traffic_analyzer
 from backend.models.hazard_detector import hazard_detector
 from backend.models.driver_behavior import driver_behavior_ai
 from backend.models.risk_predictor import risk_predictor
+from backend.services.alert_engine import alert_engine
 import os
 
 app = FastAPI(title="RoadSense AI Backend")
@@ -61,7 +62,6 @@ async def analyze_video(file_path: str):
             })
 
         # 2. Aggregate data for intelligence modules
-        # Use the last frame or an average for context/density as an MVP simplification
         last_frame_counts = all_frames_results[-1]["counts"] if all_frames_results else {}
 
         # Road Context
@@ -82,7 +82,8 @@ async def analyze_video(file_path: str):
         }
         risk = risk_predictor.calculate_risk(risk_input)
 
-        return {
+        # 3. Generate Adaptive Alerts
+        analysis_report = {
             "summary": {
                 "road_type": context["road_type"],
                 "context_confidence": context["confidence"],
@@ -94,6 +95,13 @@ async def analyze_video(file_path: str):
                 "total_hazards_detected": total_hazards
             },
             "detailed_analysis": all_frames_results
+        }
+
+        alerts = alert_engine.generate_alerts(analysis_report)
+
+        return {
+            **analysis_report,
+            "alerts": alerts
         }
     except Exception as e:
         import traceback
