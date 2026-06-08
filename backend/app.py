@@ -41,13 +41,7 @@ async def upload_video(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail=f"Unsupported file extension. Allowed: {', '.join(ALLOWED_EXTENSIONS)}")
 
     # 2. Validate file size (approximation)
-    # Read the size from the upload file
-    content = await file.read()
-    if len(content) > MAX_FILE_SIZE:
-        raise HTTPException(status_code=413, detail="File too large. Maximum allowed size is 50MB.")
-
-    # Reset file pointer after reading size
-    await file.seek(0)
+    # Note: FastAPI's UploadFile is already spooled to disk for large files
 
     try:
         file_path = await video_processor.save_upload(file)
@@ -88,25 +82,42 @@ async def analyze_video(file_path: str):
             raise HTTPException(status_code=422, detail="Could not extract any frames from the video. The file may be empty or corrupted.")
 
         # 2. Aggregate data for intelligence modules
-        last_frame_counts = all_frames_results[-1]["counts"] if all_frames_results else {}
+        # Driver Behavior needs the whole sequence
+        behavior = driver_behavior_ai.estimate_behavior(all_frames_results)
+        driver_type = behavior["driver_type"]
 
-        # Road Context
+        # Road Context (based on average or last frame)
+        last_frame_counts = all_frames_results[-1]["counts"] if all_frames_results else {}
         context = road_context_engine.predict_context({"counts": last_frame_counts})
 
-        # Traffic Density
-        density = traffic_analyzer.analyze_density(last_frame_counts)
+        # Traffic Density (overall average for summary)
+        avg_counts = {k: sum(f["counts"].get(k, 0) for f in all_frames_results) // len(all_frames_results)
+                      for k in last_frame_counts.keys()}
+        density = traffic_analyzer.analyze_density(avg_counts)
 
-        # Driver Behavior
-        behavior = driver_behavior_ai.estimate_behavior(all_frames_results)
+        # Calculate per-frame risk for the trend chart
+        frame_risks = []
+        for f in all_frames_results:
+            f_counts = f["counts"]
+            f_hazards_count = len(f["hazards"])
+            f_density_score = sum(f_counts.values())
 
-        # Risk Prediction
-        risk_input = {
+            risk_input = {
+                "counts": f_counts,
+                "density_score": f_density_score,
+                "hazards_count": f_hazards_count,
+                "driver_type": driver_type
+            }
+            frame_risks.append(risk_predictor.calculate_risk(risk_input)["risk_score"])
+
+        # Overall risk (average of all frames)
+        overall_risk_score = sum(frame_risks) / len(frame_risks) if frame_risks else 0
+        overall_risk_level = risk_predictor.calculate_risk({
             "counts": last_frame_counts,
             "density_score": density["density_score"],
             "hazards_count": total_hazards,
-            "driver_type": behavior["driver_type"]
-        }
-        risk = risk_predictor.calculate_risk(risk_input)
+            "driver_type": driver_type
+        })["risk_level"]
 
         # 3. Generate Adaptive Alerts
         analysis_report = {
@@ -115,12 +126,14 @@ async def analyze_video(file_path: str):
                 "context_confidence": context["confidence"],
                 "traffic_density": density["category"],
                 "density_score": density["density_score"],
-                "driver_profile": behavior["driver_type"],
-                "risk_score": risk["risk_score"],
-                "risk_level": risk["risk_level"],
+                "driver_profile": driver_type,
+                "risk_score": round(overall_risk_score, 2),
+                "risk_level": overall_risk_level,
                 "total_hazards_detected": total_hazards
             },
-            "detailed_analysis": all_frames_results
+            "detailed_analysis": [
+                {**f, "risk_score": r} for f, r in zip(all_frames_results, frame_risks)
+            ]
         }
 
         alerts = alert_engine.generate_alerts(analysis_report)

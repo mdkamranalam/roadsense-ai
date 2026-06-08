@@ -14,15 +14,18 @@ class VideoProcessor:
 
     async def save_upload(self, file: UploadFile) -> str:
         """
-        Saves the uploaded video file to the upload directory.
+        Saves the uploaded video file to the upload directory using chunks.
         """
         file_ext = os.path.splitext(file.filename)[1]
         file_name = f"{uuid.uuid4()}{file_ext}"
         file_path = os.path.join(self.upload_dir, file_name)
 
         with open(file_path, "wb") as buffer:
-            content = await file.read()
-            buffer.write(content)
+            while True:
+                chunk = await file.read(1024 * 1024) # 1MB chunks
+                if not chunk:
+                    break
+                buffer.write(chunk)
 
         return file_path
 

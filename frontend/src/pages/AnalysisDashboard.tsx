@@ -16,14 +16,10 @@ const AnalysisDashboard: React.FC<DashboardProps> = ({ analysisData }) => {
   useVoiceAlerts(alerts);
 
   // Prepare data for Risk Trend Chart (Risk vs Frame)
-  const riskTrendData = detailed_analysis.map((frame: any) => {
-    const countSum = Object.values(frame.counts).reduce((a: number, b: number) => a + b, 0);
-    const risk = Math.min(100, (countSum * 2) + (frame.hazards.length * 10));
-    return {
-      frame: frame.frame,
-      risk: risk,
-    };
-  });
+  const riskTrendData = detailed_analysis.map((frame: any) => ({
+    frame: frame.frame,
+    risk: frame.risk_score,
+  }));
 
   // Aggregate counts for Object Distribution Chart
   const aggCounts = {
@@ -102,7 +98,7 @@ const AnalysisDashboard: React.FC<DashboardProps> = ({ analysisData }) => {
           <p className="text-gray-400 text-xs uppercase font-bold">Avg Risk</p>
           <p className="text-2xl font-bold">{summary.risk_score}%</p>
         </div>
-        <div la="p-4 bg-gray-800 rounded-lg border border-gray-700 text-center">
+        <div className="p-4 bg-gray-800 rounded-lg border border-gray-700 text-center">
           <p className="text-gray-400 text-xs uppercase font-bold">Hazards</p>
           <p className="text-2xl font-bold text-red-400">{summary.total_hazards_detected}</p>
         </div>
