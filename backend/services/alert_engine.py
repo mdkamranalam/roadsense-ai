@@ -9,11 +9,7 @@ class AlertEngine:
             "medium": "CAUTION",
             "low": "SAFE"
         }
-<<<<<<< HEAD
-    
-=======
-
->>>>>>> 7ab9705 (add alert engine and integrate adaptive alerts into video analysis)
+        
     def generate_alerts(self, analysis_data: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
         Generate adaptive alerts based on the risk score, road context, and detected hazards.
