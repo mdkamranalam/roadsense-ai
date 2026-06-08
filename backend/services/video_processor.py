@@ -26,18 +26,20 @@ class VideoProcessor:
 
         return file_path
 
-    def extract_frames(self, video_path: str, sample_rate: int = 5) -> Generator[Tuple[int, np.ndarray], None, None]:
+    def extract_frames(self, video_path: str, sample_rate: int = 10) -> Generator[Tuple[int, np.ndarray], None, None]:
         """
         Extracts frames from the video at a specified sample rate.
         Args:
             video_path: Path to the video file.
-            sample_rate: Process every Nth frame.
+            sample_rate: Process every Nth frame. Higher value = faster processing, lower accuracy.
         Yields:
             Tuple of (frame_index, frame_image).
         """
         cap = cv2.VideoCapture(video_path)
-        frame_count = 0
+        if not cap.isOpened():
+            return
 
+        frame_count = 0
         while cap.isOpened():
             ret, frame = cap.read()
             if not ret:
