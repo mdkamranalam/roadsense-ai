@@ -61,6 +61,11 @@ async def analyze_video(file_path: str):
 
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Video file not found")
+    
+    # Check file size
+    file_size = os.path.getsize(file_path)
+    if file_size == 0:
+        raise HTTPException(status_code=422, detail="Video file is empty")
 
     try:
         all_frames_results = []
@@ -68,7 +73,9 @@ async def analyze_video(file_path: str):
 
         # 1. Process frames and perform basic object detection
         # We use the default sample_rate from video_processor
+        frames_extracted = 0
         for frame_idx, frame in video_processor.extract_frames(file_path):
+            frames_extracted += 1
             detection_result = detector.detect(frame)
 
             # Identify hazards in this frame
@@ -84,7 +91,7 @@ async def analyze_video(file_path: str):
 
         # Edge Case: Empty or unreadable video
         if not all_frames_results:
-            raise HTTPException(status_code=422, detail="Could not extract any frames from the video. The file may be empty or corrupted.")
+            raise HTTPException(status_code=422, detail=f"Could not extract any frames from the video (file size: {file_size} bytes). The file may be empty, corrupted, or in an unsupported format. Supported formats: MP4, AVI, MOV, MKV")
 
         # 2. Aggregate data for intelligence modules
         # Driver Behavior needs the whole sequence
