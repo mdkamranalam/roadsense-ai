@@ -20,13 +20,17 @@ class VideoProcessor:
         file_name = f"{uuid.uuid4()}{file_ext}"
         file_path = os.path.join(self.upload_dir, file_name)
 
+        # Read the entire file into memory first
+        contents = await file.read()
+        
+        # Write to disk
         with open(file_path, "wb") as buffer:
-            while True:
-                chunk = await file.read(1024 * 1024) # 1MB chunks
-                if not chunk:
-                    break
-                buffer.write(chunk)
-
+            buffer.write(contents)
+        
+        # Verify the file was written
+        if not os.path.exists(file_path) or os.path.getsize(file_path) == 0:
+            raise Exception(f"Failed to save video file. File size: {os.path.getsize(file_path)}")
+        
         return file_path
 
     def extract_frames(self, video_path: str, sample_rate: int = 10) -> Generator[Tuple[int, np.ndarray], None, None]:
