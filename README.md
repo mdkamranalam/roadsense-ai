@@ -1,141 +1,141 @@
 # 🚗 RoadSense AI
 
-RoadSense AI is a full-stack safety analytics system for road videos. It combines a FastAPI backend, YOLO-based object detection, and a React/Tailwind dashboard for video upload, analysis, and hazard insights.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![React 18+](https://img.shields.io/badge/react-18+-61dafb.svg)](https://reactjs.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688.svg)](https://fastapi.tiangolo.com/)
 
-## ✅ What’s Included
+**RoadSense AI** is a professional full-stack safety analytics system designed to analyze road-view videos and identify potential hazards. By leveraging computer vision and adaptive intelligence, it transforms raw video footage into actionable safety insights, risk scores, and context-aware alerts.
 
-- Backend: `backend/` using FastAPI
-- Frontend: `frontend/` with React + Vite + Tailwind
-- Docker-ready production containers for frontend and backend
-- Local development and production Docker Compose files
-- Static frontend served by Nginx in production
+---
 
-## 📦 Docker Setup
+## ✨ Key Features
 
-### 1. Build and run locally using Docker Compose
+- **🔍 Intelligent Hazard Detection**: Automatic identification of road hazards using YOLO-based object detection.
+- **📈 Risk Trend Analysis**: Per-frame risk calculation to visualize how safety levels fluctuate throughout a video segment.
+- **🚦 Traffic Density Mapping**: Analysis of vehicle and pedestrian density to categorize traffic flow (Low, Medium, High).
+- **🧠 Adaptive Alert System**: Context-aware warnings that change based on the detected environment (e.g., *School Zones*, *Market Areas*, *Highways*).
+- **👤 Driver Profiling**: Estimation of driver behavior patterns to refine risk assessment.
+- **🖥️ Modern Dashboard**: A sleek React-based interface for video uploads and comprehensive analysis visualization.
+- **🐳 Production-Ready**: Fully containerized with Docker and Nginx for seamless deployment.
 
-This is the fastest way to test the full stack locally.
+---
+
+## 🏗️ System Architecture
+
+RoadSense AI follows a modular pipeline to process video data:
+
+### 1. The AI Pipeline
+`Video Upload` $\rightarrow$ `Frame Extraction` $\rightarrow$ `Object Detection (YOLO)` $\rightarrow$ `Hazard Analysis` $\rightarrow$ `Context Prediction` $\rightarrow$ `Risk Scoring` $\rightarrow$ `Adaptive Alerts`
+
+### 2. Tech Stack
+- **Frontend**: React, TypeScript, Vite, Tailwind CSS.
+- **Backend**: FastAPI (Python), Uvicorn.
+- **AI/ML**: YOLO (Object Detection), Custom Heuristic Engines for Risk & Behavior.
+- **DevOps**: Docker, Docker Compose, Nginx.
+
+---
+
+## 🚀 Getting Started
+
+### Option 1: Quick Start with Docker (Recommended)
+
+The fastest way to get the entire system running locally.
 
 ```bash
-cd /path/to/roadsense-ai
+# Clone the repository
+git clone https://github.com/your-username/roadsense-ai.git
+cd roadsense-ai
 
+# Build and launch the full stack
 docker compose up --build
 ```
 
-Then open:
+**Access the app:**
+- 🌐 Frontend: `http://localhost:5173`
+- ⚙️ Backend: `http://localhost:8000`
 
-- Frontend: `http://localhost:5173`
-- Backend: `http://localhost:8000`
-
-### 2. Production-style local run
-
-The production compose file serves the frontend as static assets through Nginx.
+### Option 2: Production-Style Local Run
+Serves the frontend as static assets through Nginx for a production-like experience.
 
 ```bash
 docker compose -f docker-compose.prod.yml up --build
 ```
+- 🌐 Frontend: `http://localhost:80`
+- ⚙️ Backend: `http://localhost:8000`
 
-Then open:
+### Option 3: Manual Local Development
 
-- Frontend: `http://localhost:80`
-- Backend: `http://localhost:8000`
-
-### 3. Build containers individually
-
+**Backend Setup:**
 ```bash
-docker build -t roadsense-backend -f Dockerfile.backend .
-docker build -t roadsense-frontend -f Dockerfile.frontend .
+cd backend
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+python app.py
 ```
 
-### 4. Run containers individually
-
+**Frontend Setup:**
 ```bash
-docker run --rm -p 8000:8000 -v $(pwd)/backend/uploads:/app/backend/uploads -v $(pwd)/backend/outputs:/app/backend/outputs roadsense-backend
-
-docker run --rm -p 80:80 roadsense-frontend
+cd frontend
+npm install
+npm run dev
 ```
 
-## 🔧 Production Readiness Improvements
+---
 
-- Backend now runs with `uvicorn` in a lightweight Python container
-- Frontend is built and served by `nginx` for production
-- Static frontend uses relative `/api` paths by default
-- Added a `.dockerignore` to keep build contexts small
-- Added `docker-compose.prod.yml` for staging/production local runs
-- Fixed backend volume mounts for uploads and outputs in Docker Compose
+## 🛠️ API Reference
 
-## ⚙️ Deployment Recommendations (Best Free Docker Deployment)
+| Endpoint | Method | Description |
+| :--- | :---: | :--- |
+| `/` | `GET` | System root and status check |
+| `/health` | `GET` | Health check for monitoring |
+| `/api/upload` | `POST` | Upload a video file (MP4, AVI, MOV, MKV) |
+| `/api/analyze` | `POST` | Analyze a previously uploaded video by path |
+| `/api/analysis/{id}` | `GET` | Retrieve a specific analysis report |
+| `/api/dashboard` | `GET` | Get the most recent analysis summary |
 
-### Best option: Fly.io
+---
 
-Fly.io is a great free option for containerized full-stack apps with two Docker images. It supports both backend and frontend deployment.
+## ☁️ Deployment
 
-#### Prerequisites
+### Recommended: Fly.io
+Fly.io is recommended for its native Docker support and generous free tier.
 
-- Docker installed
-- `flyctl` installed from https://fly.io/docs/hands-on/install-flyctl/
-- Fly.io account created
+1. **Deploy Backend**:
+   ```bash
+   flyctl launch --name roadsense-backend --dockerfile Dockerfile.backend
+   flyctl deploy
+   ```
+2. **Deploy Frontend**:
+   ```bash
+   # Build with the production API URL
+   docker build --build-arg VITE_API_URL=https://roadsense-backend.fly.dev/api -t roadsense-frontend -f Dockerfile.frontend .
+   flyctl launch --name roadsense-frontend --dockerfile Dockerfile.frontend
+   flyctl deploy
+   ```
 
-#### Deploy the backend
+**Alternative Hosts**: Railway, Render.
 
-```bash
-cd /path/to/roadsense-ai
-flyctl auth login
-flyctl launch --name roadsense-backend --region ord --dockerfile Dockerfile.backend --no-deploy
-flyctl deploy --config fly.toml
+---
+
+## 📁 Project Structure
+
+```text
+roadsense-ai/
+├── backend/                # FastAPI server and AI logic
+│   ├── app.py              # Main API entry point
+│   ├── services/           # Core business logic (Traffic, Alerts, Video)
+│   └── models/             # AI model wrappers (YOLO, Risk, Behavior)
+├── frontend/               # React application
+│   ├── src/                # Frontend source code
+│   └── public/             # Static assets
+├── Dockerfile.backend      # Backend container definition
+├── Dockerfile.frontend     # Frontend multi-stage build (Nginx)
+└── docker-compose.yml      # Local orchestration
 ```
 
-#### Deploy the frontend
-
-```bash
-cd /path/to/roadsense-ai
-flyctl launch --name roadsense-frontend --region ord --dockerfile Dockerfile.frontend --no-deploy
-flyctl deploy --config fly.toml
-```
-
-> If the frontend and backend are deployed as separate Fly apps, set `VITE_API_URL` at build time when building the frontend. Example:
-
-```bash
-docker build --build-arg VITE_API_URL=https://your-backend-app.fly.dev/api -t roadsense-frontend -f Dockerfile.frontend .
-```
-
-### Alternative free Docker hosts
-
-- **Railway**: Supports Docker deployments and a free tier for small apps.
-- **Render**: Supports Docker containers, though free resources are limited.
-- **Fly.io** is recommended because it is Docker-native and has a generous free tier for small services.
-
-## 🧪 Verification
-
-### Backend health check
-
-```bash
-curl http://localhost:8000/health
-```
-
-### Upload endpoint
-
-```bash
-curl -F "file=@test.mp4" http://localhost:8000/api/upload
-```
-
-## 📁 File Structure
-
-- `backend/` — FastAPI server and AI modules
-- `frontend/` — React app and frontend assets
-- `Dockerfile.backend` — Backend production container
-- `Dockerfile.frontend` — Frontend multi-stage build and Nginx container
-- `docker-compose.yml` — Local development compose
-- `docker-compose.prod.yml` — Local production-style compose
-- `frontend/nginx.conf` — Nginx config for SPA routing and API proxying
-- `.dockerignore` — Clean build context rules
-
-## 🚀 Notes
-
-- The backend stores uploaded videos under `backend/uploads` and analysis output under `backend/outputs`.
-- In production, the frontend proxies `/api/` to the backend service for same-origin behavior.
-- Use `docker compose down` to stop the local stack.
+---
 
 ## 📜 License
-
 This project is licensed under the MIT License.
