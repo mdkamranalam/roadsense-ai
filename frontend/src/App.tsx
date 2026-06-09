@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import UploadPage from './pages/UploadPage';
-import AnalysisDashboard from './pages/AnalysisDashboard';
+import { useState } from "react";
+import UploadPage from "./pages/UploadPage";
+import AnalysisDashboard from "./pages/AnalysisDashboard";
 
 function App() {
   const [analysisData, setAnalysisData] = useState<any>(null);

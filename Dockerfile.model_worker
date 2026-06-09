@@ -1,0 +1,19 @@
+FROM python:3.13-slim AS base
+
+ENV PYTHONUNBUFFERED=1
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    libglib2.0-0 \
+    libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY model_worker/requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt -f https://download.pytorch.org/whl/cpu/torch_stable.html
+
+COPY yolov8n.pt /app/yolov8n.pt
+COPY model_worker /app/model_worker
+
+EXPOSE 8001
+CMD ["uvicorn", "model_worker.app:app", "--host", "0.0.0.0", "--port", "8001"]

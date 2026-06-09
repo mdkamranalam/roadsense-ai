@@ -1,9 +1,16 @@
-import React, { useEffect } from 'react';
+import { useEffect } from "react";
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-  BarChart, Bar, AreaChart, Area
-} from 'recharts';
-import useVoiceAlerts from '../hooks/useVoiceAlerts';
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  AreaChart,
+  Area,
+} from "recharts";
+import useVoiceAlerts from "../hooks/useVoiceAlerts";
 
 interface DashboardProps {
   analysisData: any;
@@ -34,15 +41,17 @@ const AnalysisDashboard: React.FC<DashboardProps> = ({ analysisData }) => {
   });
 
   const objectData = [
-    { name: 'Cars', count: aggCounts.cars, fill: '#3B82F6' },
-    { name: 'Bikes', count: aggCounts.bikes, fill: '#F59E0B' },
-    { name: 'Pedestrians', count: aggCounts.pedestrians, fill: '#EF4444' },
+    { name: "Cars", count: aggCounts.cars, fill: "#3B82F6" },
+    { name: "Bikes", count: aggCounts.bikes, fill: "#F59E0B" },
+    { name: "Pedestrians", count: aggCounts.pedestrians, fill: "#EF4444" },
   ];
 
   return (
     <div className="space-y-8 p-6 bg-gray-900 text-white rounded-2xl border border-gray-800">
       <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold text-blue-400">Safety Analytics Dashboard</h2>
+        <h2 className="text-3xl font-bold text-blue-400">
+          Safety Analytics Dashboard
+        </h2>
         <div className="flex items-center space-x-2 px-3 py-1 bg-blue-500/20 border border-blue-500/50 rounded-full text-blue-300 text-xs font-bold uppercase tracking-wider">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
@@ -55,21 +64,35 @@ const AnalysisDashboard: React.FC<DashboardProps> = ({ analysisData }) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Risk Trend Chart */}
         <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 h-80">
-          <h3 className="text-lg font-semibold mb-4 text-gray-300">Risk Profile Over Time</h3>
+          <h3 className="text-lg font-semibold mb-4 text-gray-300">
+            Risk Profile Over Time
+          </h3>
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={riskTrendData}>
                 <defs>
                   <linearGradient id="colorRisk" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#EF4444" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#EF4444" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#EF4444" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#EF4444" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                 <XAxis dataKey="frame" stroke="#9CA3AF" />
                 <YAxis stroke="#9CA3AF" />
-                <Tooltip contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#F3F4F6' }} />
-                <Area type="monotone" dataKey="risk" stroke="#EF4444" fillOpacity={1} fill="url(#colorRisk)" />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#1F2937",
+                    borderColor: "#374151",
+                    color: "#F3F4F6",
+                  }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="risk"
+                  stroke="#EF4444"
+                  fillOpacity={1}
+                  fill="url(#colorRisk)"
+                />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -77,14 +100,22 @@ const AnalysisDashboard: React.FC<DashboardProps> = ({ analysisData }) => {
 
         {/* Object Distribution Chart */}
         <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 h-80">
-          <h3 className="text-lg font-semibold mb-4 text-gray-300">Object Distribution</h3>
+          <h3 className="text-lg font-semibold mb-4 text-gray-300">
+            Object Distribution
+          </h3>
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={objectData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                 <XAxis dataKey="name" stroke="#9CA3AF" />
                 <YAxis stroke="#9CA3AF" />
-                <Tooltip contentStyle={{ backgroundColor: '#1F2937', borderColor: '#374151', color: '#F3F4F6' }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#1F2937",
+                    borderColor: "#374151",
+                    color: "#F3F4F6",
+                  }}
+                />
                 <Bar dataKey="count" />
               </BarChart>
             </ResponsiveContainer>
@@ -100,10 +131,14 @@ const AnalysisDashboard: React.FC<DashboardProps> = ({ analysisData }) => {
         </div>
         <div className="p-4 bg-gray-800 rounded-lg border border-gray-700 text-center">
           <p className="text-gray-400 text-xs uppercase font-bold">Hazards</p>
-          <p className="text-2xl font-bold text-red-400">{summary.total_hazards_detected}</p>
+          <p className="text-2xl font-bold text-red-400">
+            {summary.total_hazards_detected}
+          </p>
         </div>
         <div className="p-4 bg-gray-800 rounded-lg border border-gray-700 text-center">
-          <p className="text-gray-400 text-xs uppercase font-bold">Environment</p>
+          <p className="text-gray-400 text-xs uppercase font-bold">
+            Environment
+          </p>
           <p className="text-lg font-bold truncate">{summary.road_type}</p>
         </div>
         <div className="p-4 bg-gray-800 rounded-lg border border-gray-700 text-center">

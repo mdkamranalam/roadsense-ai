@@ -1,7 +1,7 @@
 from fastapi import FastAPI, APIRouter, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from .services.video_processor import video_processor
-from .models.object_detector import detector
+from .services.detection_client import model_worker_client
 from .models.road_context import road_context_engine
 from .services.traffic_analyzer import traffic_analyzer
 from .models.hazard_detector import hazard_detector
@@ -76,7 +76,7 @@ async def analyze_video(file_path: str):
         frames_extracted = 0
         for frame_idx, frame in video_processor.extract_frames(file_path):
             frames_extracted += 1
-            detection_result = detector.detect(frame)
+            detection_result = await model_worker_client.detect(frame)
 
             # Identify hazards in this frame
             frame_hazards = hazard_detector.detect_hazards(detection_result["detections"])

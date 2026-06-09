@@ -14,7 +14,8 @@ export const apiService = {
     const formData = new FormData();
     formData.append("file", file);
 
-    const response = await apiClient.post("/api/upload", formData, {
+    // Post to "/upload" — baseURL already set to "/api"
+    const response = await apiClient.post("/upload", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
@@ -26,7 +27,7 @@ export const apiService = {
     // The current backend endpoint expects file_path as a query parameter or JSON body
     // Based on backend/app.py: async def analyze_video(file_path: str)
     // FastAPI by default treats simple types in the function signature as query parameters
-    const response = await apiClient.post(`/api/analyze?file_path=${filePath}`);
+    const response = await apiClient.post(`/analyze?file_path=${filePath}`);
     return response.data;
   },
 
