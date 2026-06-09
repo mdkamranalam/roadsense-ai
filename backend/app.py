@@ -1,16 +1,21 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, APIRouter, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from backend.services.video_processor import video_processor
-from backend.models.object_detector import detector
-from backend.models.road_context import road_context_engine
-from backend.services.traffic_analyzer import traffic_analyzer
-from backend.models.hazard_detector import hazard_detector
-from backend.models.driver_behavior import driver_behavior_ai
-from backend.models.risk_predictor import risk_predictor
-from backend.services.alert_engine import alert_engine
+from .services.video_processor import video_processor
+from .models.object_detector import detector
+from .models.road_context import road_context_engine
+from .services.traffic_analyzer import traffic_analyzer
+from .models.hazard_detector import hazard_detector
+from .models.driver_behavior import driver_behavior_ai
+from .models.risk_predictor import risk_predictor
+from .services.alert_engine import alert_engine
 import os
+import uuid
+
+# In-memory storage for analyses (stores the simplified analysis as per plan.md)
+analysis_store = {}
 
 app = FastAPI(title="RoadSense AI Backend")
+api_router = APIRouter(prefix="/api")
 
 # Configure CORS for React frontend
 app.add_middleware(
@@ -33,7 +38,7 @@ async def root():
 async def health_check():
     return {"status": "healthy", "version": "0.1.0"}
 
-@app.post("/upload")
+@api_router.post("/upload")
 async def upload_video(file: UploadFile = File(...)):
     # 1. Validate file extension
     ext = os.path.splitext(file.filename)[1].lower()
@@ -49,7 +54,7 @@ async def upload_video(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
 
-@app.post("/analyze")
+@api_router.post("/analyze")
 async def analyze_video(file_path: str):
     if not file_path:
         raise HTTPException(status_code=400, detail="file_path is required")
@@ -138,8 +143,28 @@ async def analyze_video(file_path: str):
 
         alerts = alert_engine.generate_alerts(analysis_report)
 
+        # Generate an analysis ID and store the simplified analysis (as per plan.md)
+        analysis_id = str(uuid.uuid4())
+        # Extract the five fields for the plan.md format
+        # Hazard: we'll use the first alert's message if available, else "NONE"
+        hazard_msg = alerts[0]["message"] if alerts else "NONE"
+        # Alert: we'll use the first alert's message if available, else "SAFE TO PROCEED"
+        alert_msg = alerts[0]["message"] if alerts else "SAFE TO PROCEED"
+        simplified_analysis = {
+            "road_type": context["road_type"],
+            "density": density["category"],
+            "hazard": hazard_msg,
+            "risk_score": round(overall_risk_score, 2),
+            "alert": alert_msg
+        }
+        analysis_store[analysis_id] = simplified_analysis
+
+        # Return the analysis_id, the simplified analysis (for plan.md compliance), and the full analysis report (for frontend)
         return {
-            **analysis_report,
+            "analysis_id": analysis_id,
+            **simplified_analysis,
+            "summary": analysis_report["summary"],
+            "detailed_analysis": analysis_report["detailed_analysis"],
             "alerts": alerts
         }
     except Exception as e:
@@ -148,6 +173,24 @@ async def analyze_video(file_path: str):
         import traceback
         print(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
+
+@api_router.get("/analysis/{analysis_id}")
+async def get_analysis(analysis_id: str):
+    if analysis_id not in analysis_store:
+        raise HTTPException(status_code=404, detail="Analysis not found")
+    return analysis_store[analysis_id]
+
+@api_router.get("/dashboard")
+async def get_dashboard():
+    # Return the most recent analysis
+    if not analysis_store:
+        raise HTTPException(status_code=404, detail="No analysis available")
+    # Get the last analysis ID (assuming insertion order is preserved in Python 3.7+)
+    latest_analysis_id = list(analysis_store.keys())[-1]
+    return analysis_store[latest_analysis_id]
+
+# Include the router in the app
+app.include_router(api_router)
 
 if __name__ == "__main__":
     import uvicorn
