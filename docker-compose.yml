@@ -1,16 +1,27 @@
 services:
+  model_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.model_worker
+    expose:
+      - "8001"
+    restart: unless-stopped
+
   backend:
     build:
       context: .
       dockerfile: Dockerfile.backend
     ports:
       - "8000:8000"
+    depends_on:
+      - model_worker
     volumes:
       - ./backend/uploads:/app/backend/uploads
       - ./backend/outputs:/app/backend/outputs
     restart: unless-stopped
     environment:
       - ENV=production
+      - MODEL_WORKER_URL=http://model_worker:8001
 
   frontend:
     build:

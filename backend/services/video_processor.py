@@ -1,7 +1,7 @@
 import cv2
 import os
 import uuid
-from fastapi import UploadFile, File
+from fastapi import UploadFile
 from typing import List, Tuple, Generator
 import numpy as np
 

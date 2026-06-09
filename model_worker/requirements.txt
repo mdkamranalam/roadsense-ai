@@ -1,11 +1,8 @@
 fastapi
 uvicorn
 numpy
-pandas
-scikit-learn
 opencv-python-headless
+ultralytics==8.4.62
 python-multipart
-pydantic
-httpx
-tqdm
-Pillow
+torch==2.12.0
+torchvision==0.27.0

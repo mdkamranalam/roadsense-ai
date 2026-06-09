@@ -14,7 +14,7 @@
 - **🔍 Intelligent Hazard Detection**: Automatic identification of road hazards using YOLO-based object detection.
 - **📈 Risk Trend Analysis**: Per-frame risk calculation to visualize how safety levels fluctuate throughout a video segment.
 - **🚦 Traffic Density Mapping**: Analysis of vehicle and pedestrian density to categorize traffic flow (Low, Medium, High).
-- **🧠 Adaptive Alert System**: Context-aware warnings that change based on the detected environment (e.g., *School Zones*, *Market Areas*, *Highways*).
+- **🧠 Adaptive Alert System**: Context-aware warnings that change based on the detected environment (e.g., _School Zones_, _Market Areas_, _Highways_).
 - **👤 Driver Profiling**: Estimation of driver behavior patterns to refine risk assessment.
 - **🖥️ Modern Dashboard**: A sleek React-based interface for video uploads and comprehensive analysis visualization.
 - **🐳 Production-Ready**: Fully containerized with Docker and Nginx for seamless deployment.
@@ -26,12 +26,14 @@
 RoadSense AI follows a modular pipeline to process video data:
 
 ### 1. The AI Pipeline
+
 `Video Upload` $\rightarrow$ `Frame Extraction` $\rightarrow$ `Object Detection (YOLO)` $\rightarrow$ `Hazard Analysis` $\rightarrow$ `Context Prediction` $\rightarrow$ `Risk Scoring` $\rightarrow$ `Adaptive Alerts`
 
 ### 2. Tech Stack
+
 - **Frontend**: React, TypeScript, Vite, Tailwind CSS.
-- **Backend**: FastAPI (Python), Uvicorn.
-- **AI/ML**: YOLO (Object Detection), Custom Heuristic Engines for Risk & Behavior.
+- **Backend**: FastAPI (Python), Uvicorn, and a lightweight inference worker service.
+- **AI/ML**: YOLO (Object Detection) in a separate model worker container, Custom Heuristic Engines for Risk & Behavior.
 - **DevOps**: Docker, Docker Compose, Nginx.
 
 ---
@@ -49,24 +51,31 @@ cd roadsense-ai
 
 # Build and launch the full stack
 docker compose up --build
+
+# The compose configuration now includes a separate model worker service for YOLO inference.
 ```
 
 **Access the app:**
+
 - 🌐 Frontend: `http://localhost:5173`
 - ⚙️ Backend: `http://localhost:8000`
 
 ### Option 2: Production-Style Local Run
-Serves the frontend as static assets through Nginx for a production-like experience.
+
+Serves the frontend as static assets through Nginx for a production-like experience. This setup also starts the model worker container automatically.
 
 ```bash
 docker compose -f docker-compose.prod.yml up --build
 ```
+
 - 🌐 Frontend: `http://localhost:80`
 - ⚙️ Backend: `http://localhost:8000`
+- 🤖 Model Worker: internal service at `http://model-worker:8001`
 
 ### Option 3: Manual Local Development
 
 **Backend Setup:**
+
 ```bash
 cd backend
 python -m venv venv
@@ -76,6 +85,7 @@ python app.py
 ```
 
 **Frontend Setup:**
+
 ```bash
 cd frontend
 npm install
@@ -86,20 +96,21 @@ npm run dev
 
 ## 🛠️ API Reference
 
-| Endpoint | Method | Description |
-| :--- | :---: | :--- |
-| `/` | `GET` | System root and status check |
-| `/health` | `GET` | Health check for monitoring |
-| `/api/upload` | `POST` | Upload a video file (MP4, AVI, MOV, MKV) |
-| `/api/analyze` | `POST` | Analyze a previously uploaded video by path |
-| `/api/analysis/{id}` | `GET` | Retrieve a specific analysis report |
-| `/api/dashboard` | `GET` | Get the most recent analysis summary |
+| Endpoint             | Method | Description                                 |
+| :------------------- | :----: | :------------------------------------------ |
+| `/`                  | `GET`  | System root and status check                |
+| `/health`            | `GET`  | Health check for monitoring                 |
+| `/api/upload`        | `POST` | Upload a video file (MP4, AVI, MOV, MKV)    |
+| `/api/analyze`       | `POST` | Analyze a previously uploaded video by path |
+| `/api/analysis/{id}` | `GET`  | Retrieve a specific analysis report         |
+| `/api/dashboard`     | `GET`  | Get the most recent analysis summary        |
 
 ---
 
 ## ☁️ Deployment
 
 ### Recommended: Fly.io
+
 Fly.io is recommended for its native Docker support and generous free tier.
 
 1. **Deploy Backend**:
@@ -138,4 +149,5 @@ roadsense-ai/
 ---
 
 ## 📜 License
+
 This project is licensed under the MIT License.
