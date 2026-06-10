@@ -7,11 +7,15 @@
 [![YOLOv8](https://img.shields.io/badge/YOLO-v8-orange.svg)](https://ultralytics.com)
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
 
-> **Built for ET AutoTech Hackathon 2026**  
+> **🏆 Built for ET AutoTech Hackathon 2026**  
 > **Theme:** AI for ADAS Adoption in India  
 > **Team:** DevMasters (Md. Kamran Alam & Ankur Verma)
 
-**RoadSense AI** is an advanced, edge-ready Advanced Driver Assistance System (ADAS) platform designed to accelerate ADAS adoption across India. Traditional ADAS systems face two major hurdles in the Indian market: the prohibitive cost of luxury vehicles equipped with these systems, and the failure of Western AI models to interpret chaotic Indian road conditions (e.g., mixed traffic, animals, unique vehicle types). RoadSense AI solves this by providing a hyper-localized, affordable intelligence layer that can upgrade any vehicle with context-driven safety alerts using just a standard dashcam.
+**RoadSense AI** is an advanced, edge-ready Advanced Driver Assistance System (ADAS) platform designed to accelerate ADAS adoption across India. 
+
+Traditional ADAS systems face two major hurdles in the Indian market: the prohibitive cost of luxury vehicles equipped with these systems, and the failure of Western AI models to interpret chaotic Indian road conditions (e.g., mixed traffic, animals, unique vehicle types). 
+
+RoadSense AI solves this by providing a hyper-localized, affordable intelligence layer that can upgrade any vehicle with context-driven safety alerts using just a standard dashcam.
 
 ---
 
@@ -38,6 +42,14 @@ graph LR
     C -->|Detections| B
     B -->|Context + Hazards| D[Intelligence Engines]
     D -->|Adaptive Alerts| A
+    
+    classDef frontend fill:#61dafb,stroke:#333,stroke-width:2px,color:#000;
+    classDef backend fill:#009688,stroke:#333,stroke-width:2px,color:#fff;
+    classDef ai fill:#ff9800,stroke:#333,stroke-width:2px,color:#000;
+    
+    class A frontend;
+    class B,D backend;
+    class C ai;
 ```
 
 ### 🛠️ Tech Stack
@@ -49,11 +61,28 @@ graph LR
 
 ---
 
+## 📁 Project Structure
+
+```text
+roadsense-ai/
+├── backend/        # FastAPI Orchestrator & Intelligence Engines
+├── frontend/       # React 18 Dashboard UI
+├── model_worker/   # Dedicated YOLOv8 Inference Service
+├── docs/           # Documentation and assets
+└── docker-compose.yml
+```
+
+---
+
 ## 🚀 Getting Started
 
-### Quick Start with Docker (Recommended)
+### Prerequisites
+- **Docker & Docker Compose** (Recommended for easiest setup)
+- **Node.js 18+** & **Python 3.10+** (If running natively without Docker)
 
-The fastest way to get the entire system running locally. This provisions the Frontend, Backend, and AI Model Worker.
+### Option A: Quick Start with Docker (Recommended)
+
+The fastest way to get the entire system running locally. This provisions the Frontend, Backend, and AI Model Worker together.
 
 ```bash
 # Clone the repository
@@ -68,30 +97,59 @@ docker compose up --build
 - 🌐 **Dashboard (Frontend)**: `http://localhost:5173`
 - ⚙️ **API Documentation (Backend)**: `http://localhost:8000/docs`
 
-### Production-Style Deployment
-
+#### Production-Style Deployment
 Serves the frontend as static assets through Nginx for a production-like experience.
-
 ```bash
 docker compose -f docker-compose.prod.yml up --build
 ```
-- 🌐 Frontend: `http://localhost:80`
-- ⚙️ Backend API: `http://localhost:8000`
+
+### Option B: Native Local Setup (Without Docker)
+
+For active development, you can run the services natively on your host machine.
+
+```bash
+# 1. Start the Model Worker (Port 8001)
+cd model_worker
+pip install -r requirements.txt
+uvicorn app:app --port 8001
+
+# 2. Start the Backend Orchestrator (Port 8000)
+# Open a new terminal
+cd backend
+pip install -r requirements.txt
+uvicorn app:app --port 8000
+
+# 3. Start the Frontend UI (Port 5173)
+# Open a new terminal
+cd frontend
+npm install
+npm run dev
+```
+
+*(Alternatively, you can use the provided `./start.sh` script to launch the python backend services together in the background).*
 
 ---
 
 ## 🧠 The Intelligence Engines
 
-RoadSense AI is powered by multiple AI and rule-based engines:
+RoadSense AI is powered by multiple AI and rule-based engines working in harmony:
 
 1. **Object Detector:** Processes frames to detect vehicles, pedestrians, animals, and traffic signs.
-2. **Context Engine:** Determines the road environment (e.g., Urban Congested, Highway) based on detection density.
-3. **Hazard Engine:** Flags critical dangers (e.g., pedestrian crossing, animal hazard).
-4. **Driver Behavior Engine:** Estimates driving style based on movement speed and hazard encounters.
+2. **Context Engine:** Determines the road environment (e.g., Urban Congested, Highway) based on detection density and object types.
+3. **Hazard Engine:** Flags critical dangers (e.g., pedestrian crossing, animal hazard, sudden braking).
+4. **Driver Behavior Engine:** Estimates driving style based on movement speed, acceleration, and hazard encounters.
 5. **Risk Predictor:** Aggregates inputs to calculate a global Risk Score (0-100) and Level (Safe, Moderate, High, Critical).
+
+---
+
+## 🔮 Future Roadmap
+
+- [ ] **Live RTSP Stream Integration**: Support direct ingestion from IP dashcams.
+- [ ] **OTA Model Updates**: Dynamically push region-specific YOLO weights (e.g., "Himalayan Roads" vs "Mumbai Traffic").
+- [ ] **Mobile Companion App**: Provide post-trip analytics and risk reports directly to drivers.
 
 ---
 
 ## 📜 License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
