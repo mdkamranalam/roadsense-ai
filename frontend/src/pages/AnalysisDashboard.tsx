@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import {
   XAxis,
   YAxis,
@@ -41,55 +41,70 @@ const AnalysisDashboard: React.FC<DashboardProps> = ({ analysisData }) => {
   });
 
   const objectData = [
-    { name: "Cars", count: aggCounts.cars, fill: "#3B82F6" },
-    { name: "Bikes", count: aggCounts.bikes, fill: "#F59E0B" },
-    { name: "Pedestrians", count: aggCounts.pedestrians, fill: "#EF4444" },
+    { name: "Cars", count: aggCounts.cars, fill: "#00d2ff" },
+    { name: "Bikes", count: aggCounts.bikes, fill: "#f59e0b" },
+    { name: "Pedestrians", count: aggCounts.pedestrians, fill: "#ef4444" },
   ];
 
+  const getRiskColor = (score: number) => {
+    if (score > 70) return "danger";
+    if (score > 30) return "warning";
+    return "success";
+  };
+
+  const getAlertClass = (priority: string) => {
+    switch(priority) {
+      case "critical": return "alert-critical";
+      case "high": return "alert-high";
+      case "medium": return "alert-medium";
+      default: return "alert-low";
+    }
+  };
+
   return (
-    <div className="space-y-8 p-6 bg-gray-900 text-white rounded-2xl border border-gray-800">
-      <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold text-blue-400">
+    <div className="glass-panel animate-fade-in" style={{ padding: '32px' }}>
+      <div className="dashboard-header">
+        <h2 className="heading-2" style={{ marginBottom: 0 }}>
           Safety Analytics Dashboard
         </h2>
-        <div className="flex items-center space-x-2 px-3 py-1 bg-blue-500/20 border border-blue-500/50 rounded-full text-blue-300 text-xs font-bold uppercase tracking-wider">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
-          </span>
-          <span>Voice Alerts Active</span>
+        <div className="status-badge">
+          <span className="status-dot"></span>
+          Voice Alerts Active
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid-2">
         {/* Risk Trend Chart */}
-        <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 h-80">
-          <h3 className="text-lg font-semibold mb-4 text-gray-300">
+        <div className="glass-card" style={{ padding: '24px' }}>
+          <h3 className="heading-3" style={{ marginBottom: '16px' }}>
             Risk Profile Over Time
           </h3>
-          <div className="h-64 w-full">
+          <div className="chart-container">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={riskTrendData}>
                 <defs>
                   <linearGradient id="colorRisk" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#EF4444" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#EF4444" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis dataKey="frame" stroke="#9CA3AF" />
-                <YAxis stroke="#9CA3AF" />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                <XAxis dataKey="frame" stroke="#94a3b8" />
+                <YAxis stroke="#94a3b8" />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: "#1F2937",
-                    borderColor: "#374151",
-                    color: "#F3F4F6",
+                    backgroundColor: "rgba(15, 23, 42, 0.9)",
+                    backdropFilter: "blur(8px)",
+                    borderColor: "rgba(255,255,255,0.1)",
+                    color: "#fff",
+                    borderRadius: "8px"
                   }}
                 />
                 <Area
                   type="monotone"
                   dataKey="risk"
-                  stroke="#EF4444"
+                  stroke="#ef4444"
+                  strokeWidth={2}
                   fillOpacity={1}
                   fill="url(#colorRisk)"
                 />
@@ -99,24 +114,27 @@ const AnalysisDashboard: React.FC<DashboardProps> = ({ analysisData }) => {
         </div>
 
         {/* Object Distribution Chart */}
-        <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 h-80">
-          <h3 className="text-lg font-semibold mb-4 text-gray-300">
+        <div className="glass-card" style={{ padding: '24px' }}>
+          <h3 className="heading-3" style={{ marginBottom: '16px' }}>
             Object Distribution
           </h3>
-          <div className="h-64 w-full">
+          <div className="chart-container">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={objectData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis dataKey="name" stroke="#9CA3AF" />
-                <YAxis stroke="#9CA3AF" />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                <XAxis dataKey="name" stroke="#94a3b8" />
+                <YAxis stroke="#94a3b8" />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: "#1F2937",
-                    borderColor: "#374151",
-                    color: "#F3F4F6",
+                    backgroundColor: "rgba(15, 23, 42, 0.9)",
+                    backdropFilter: "blur(8px)",
+                    borderColor: "rgba(255,255,255,0.1)",
+                    color: "#fff",
+                    borderRadius: "8px"
                   }}
+                  cursor={{ fill: 'rgba(255,255,255,0.05)' }}
                 />
-                <Bar dataKey="count" />
+                <Bar dataKey="count" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -124,26 +142,41 @@ const AnalysisDashboard: React.FC<DashboardProps> = ({ analysisData }) => {
       </div>
 
       {/* Trip Summary Metrics */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="p-4 bg-gray-800 rounded-lg border border-gray-700 text-center">
-          <p className="text-gray-400 text-xs uppercase font-bold">Avg Risk</p>
-          <p className="text-2xl font-bold">{summary.risk_score}%</p>
+      <div className="metric-grid">
+        <div className="glass-card metric-card">
+          <p className="metric-label">Avg Risk</p>
+          <p className={`metric-value ${getRiskColor(summary.risk_score)}`}>{summary.risk_score}%</p>
         </div>
-        <div className="p-4 bg-gray-800 rounded-lg border border-gray-700 text-center">
-          <p className="text-gray-400 text-xs uppercase font-bold">Hazards</p>
-          <p className="text-2xl font-bold text-red-400">
+        <div className="glass-card metric-card">
+          <p className="metric-label">Hazards</p>
+          <p className="metric-value danger">
             {summary.total_hazards_detected}
           </p>
         </div>
-        <div className="p-4 bg-gray-800 rounded-lg border border-gray-700 text-center">
-          <p className="text-gray-400 text-xs uppercase font-bold">
-            Environment
+        <div className="glass-card metric-card">
+          <p className="metric-label">Environment</p>
+          <p className="metric-value text-gradient" style={{ fontSize: '1.5rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {summary.road_type.replace('_', ' ')}
           </p>
-          <p className="text-lg font-bold truncate">{summary.road_type}</p>
         </div>
-        <div className="p-4 bg-gray-800 rounded-lg border border-gray-700 text-center">
-          <p className="text-gray-400 text-xs uppercase font-bold">Profile</p>
-          <p className="text-lg font-bold">{summary.driver_profile}</p>
+        <div className="glass-card metric-card">
+          <p className="metric-label">Profile</p>
+          <p className="metric-value" style={{ fontSize: '1.5rem' }}>{summary.driver_profile.replace('_', ' ')}</p>
+        </div>
+      </div>
+
+      {/* Adaptive Alerts */}
+      <div style={{ marginTop: '40px' }}>
+        <h3 className="heading-3" style={{ marginBottom: '16px', color: '#fff' }}>
+          Adaptive Alerts
+        </h3>
+        <div className="alerts-list">
+          {alerts.map((alert: any, idx: number) => (
+            <div key={idx} className={`alert-item ${getAlertClass(alert.priority)}`}>
+              <span style={{ fontWeight: 500 }}>{alert.message}</span>
+              <span className="alert-level">{alert.level}</span>
+            </div>
+          ))}
         </div>
       </div>
     </div>
