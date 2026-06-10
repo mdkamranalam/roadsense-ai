@@ -4,36 +4,42 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![React 18+](https://img.shields.io/badge/react-18+-61dafb.svg)](https://reactjs.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688.svg)](https://fastapi.tiangolo.com/)
+[![YOLOv8](https://img.shields.io/badge/YOLO-v8-orange.svg)](https://ultralytics.com)
 
-**RoadSense AI** is a professional full-stack safety analytics system designed to analyze road-view videos and identify potential hazards. By leveraging computer vision and adaptive intelligence, it transforms raw video footage into actionable safety insights, risk scores, and context-aware alerts.
+**RoadSense AI** is a professional full-stack safety analytics system designed to analyze road-view videos and identify potential hazards. By leveraging advanced computer vision and adaptive intelligence, it transforms raw video footage into actionable safety insights, risk scores, and context-aware alerts.
 
 ---
 
 ## ✨ Key Features
 
-- **🔍 Intelligent Hazard Detection**: Automatic identification of road hazards using YOLO-based object detection.
+- **🔍 Intelligent Hazard Detection**: Automatic identification of road hazards using state-of-the-art YOLOv8 object detection.
 - **📈 Risk Trend Analysis**: Per-frame risk calculation to visualize how safety levels fluctuate throughout a video segment.
 - **🚦 Traffic Density Mapping**: Analysis of vehicle and pedestrian density to categorize traffic flow (Low, Medium, High).
 - **🧠 Adaptive Alert System**: Context-aware warnings that change based on the detected environment (e.g., _School Zones_, _Market Areas_, _Highways_).
 - **👤 Driver Profiling**: Estimation of driver behavior patterns to refine risk assessment.
-- **🖥️ Modern Dashboard**: A sleek React-based interface for video uploads and comprehensive analysis visualization.
-- **🐳 Production-Ready**: Fully containerized with Docker and Nginx for seamless deployment.
+- **🖥️ Modern Dashboard**: A sleek, interactive React-based interface for video uploads and comprehensive analysis visualization.
+- **🐳 Production-Ready Microservices**: Fully containerized with Docker, featuring separated backend, frontend, and dedicated AI model worker services.
 
 ---
 
 ## 🏗️ System Architecture
 
-RoadSense AI follows a modular pipeline to process video data:
+RoadSense AI follows a microservice-based pipeline to process video data efficiently:
 
-### 1. The AI Pipeline
+```mermaid
+graph LR
+    A[Frontend UI] -->|Video Upload| B(FastAPI Backend)
+    B -->|Extract Frames| C{AI Model Worker}
+    C -->|YOLOv8 Detections| B
+    B -->|Context + Density| D[Intelligence Engine]
+    D -->|Risk + Alerts| A
+```
 
-`Video Upload` $\rightarrow$ `Frame Extraction` $\rightarrow$ `Object Detection (YOLO)` $\rightarrow$ `Hazard Analysis` $\rightarrow$ `Context Prediction` $\rightarrow$ `Risk Scoring` $\rightarrow$ `Adaptive Alerts`
-
-### 2. Tech Stack
+### Tech Stack
 
 - **Frontend**: React, TypeScript, Vite, Tailwind CSS.
-- **Backend**: FastAPI (Python), Uvicorn, and a lightweight inference worker service.
-- **AI/ML**: YOLO (Object Detection) in a separate model worker container, Custom Heuristic Engines for Risk & Behavior.
+- **Backend Orchestrator**: FastAPI (Python), Uvicorn.
+- **AI/ML Worker**: Dedicated FastAPI service running Ultralytics YOLOv8 for heavy inference.
 - **DevOps**: Docker, Docker Compose, Nginx.
 
 ---
@@ -42,7 +48,7 @@ RoadSense AI follows a modular pipeline to process video data:
 
 ### Option 1: Quick Start with Docker (Recommended)
 
-The fastest way to get the entire system running locally.
+The fastest way to get the entire system running locally. This will spin up the Frontend, Backend, and AI Model Worker.
 
 ```bash
 # Clone the repository
@@ -51,46 +57,24 @@ cd roadsense-ai
 
 # Build and launch the full stack
 docker compose up --build
-
-# The compose configuration now includes a separate model worker service for YOLO inference.
 ```
 
 **Access the app:**
 
 - 🌐 Frontend: `http://localhost:5173`
-- ⚙️ Backend: `http://localhost:8000`
+- ⚙️ Backend API: `http://localhost:8000`
 
 ### Option 2: Production-Style Local Run
 
-Serves the frontend as static assets through Nginx for a production-like experience. This setup also starts the model worker container automatically.
+Serves the frontend as static assets through Nginx for a production-like experience.
 
 ```bash
 docker compose -f docker-compose.prod.yml up --build
 ```
 
 - 🌐 Frontend: `http://localhost:80`
-- ⚙️ Backend: `http://localhost:8000`
-- 🤖 Model Worker: internal service at `http://model-worker:8001`
-
-### Option 3: Manual Local Development
-
-**Backend Setup:**
-
-```bash
-cd backend
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-python app.py
-```
-
-**Frontend Setup:**
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
+- ⚙️ Backend API: `http://localhost:8000`
+- 🤖 Model Worker (Internal): `http://model-worker:8001`
 
 ---
 
@@ -98,8 +82,6 @@ npm run dev
 
 | Endpoint             | Method | Description                                 |
 | :------------------- | :----: | :------------------------------------------ |
-| `/`                  | `GET`  | System root and status check                |
-| `/health`            | `GET`  | Health check for monitoring                 |
 | `/api/upload`        | `POST` | Upload a video file (MP4, AVI, MOV, MKV)    |
 | `/api/analyze`       | `POST` | Analyze a previously uploaded video by path |
 | `/api/analysis/{id}` | `GET`  | Retrieve a specific analysis report         |
@@ -107,42 +89,22 @@ npm run dev
 
 ---
 
-## ☁️ Deployment
-
-### Recommended: Fly.io
-
-Fly.io is recommended for its native Docker support and generous free tier.
-
-1. **Deploy Backend**:
-   ```bash
-   flyctl launch --name roadsense-backend --dockerfile Dockerfile.backend
-   flyctl deploy
-   ```
-2. **Deploy Frontend**:
-   ```bash
-   # Build with the production API URL
-   docker build --build-arg VITE_API_URL=https://roadsense-backend.fly.dev/api -t roadsense-frontend -f Dockerfile.frontend .
-   flyctl launch --name roadsense-frontend --dockerfile Dockerfile.frontend
-   flyctl deploy
-   ```
-
-**Alternative Hosts**: Railway, Render.
-
----
-
 ## 📁 Project Structure
 
 ```text
 roadsense-ai/
-├── backend/                # FastAPI server and AI logic
+├── backend/                # FastAPI server (Orchestrator)
 │   ├── app.py              # Main API entry point
 │   ├── services/           # Core business logic (Traffic, Alerts, Video)
-│   └── models/             # AI model wrappers (YOLO, Risk, Behavior)
+│   └── models/             # AI heuristic engines (Risk, Behavior)
 ├── frontend/               # React application
 │   ├── src/                # Frontend source code
 │   └── public/             # Static assets
+├── model_worker/           # Dedicated YOLOv8 Inference Service
+│   └── app.py              # YOLO inference API
 ├── Dockerfile.backend      # Backend container definition
-├── Dockerfile.frontend     # Frontend multi-stage build (Nginx)
+├── Dockerfile.frontend     # Frontend container definition
+├── Dockerfile.model_worker # Model worker container definition
 └── docker-compose.yml      # Local orchestration
 ```
 
